@@ -1,0 +1,21 @@
+##自定义config
+mkdir -p /root/qy/redis && cd /root/qy/redis
+# + ./conf/redis.conf > redis.conf
+
+docker run  -p 6379:6379 --name redis --privileged=true -v /root/qy/redis/redis.conf:/etc/redis/redis.conf -v /root/qy/redis/data:/data -d redis:6.0.8 redis-server /etc/redis/redis.conf
+
+##验证config中databases 16
+
+docker exec -it redis bash
+```
+redis-cli
+127.0.0.1:6379> set k1 v1
+OK
+127.0.0.1:6379> get k1
+"v1"
+127.0.0.1:6379> SELECT 15
+OK
+127.0.0.1:6379[15]> SELECT 17
+(error) ERR DB index is out of range
+127.0.0.1:6379[15]> 
+```
