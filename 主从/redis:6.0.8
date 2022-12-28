@@ -68,3 +68,70 @@ c22abc631a3844580897fa669979f8c4dc2c9336 192.168.11.228:6384@16384 slave ae03cd1
 84484ee038e3584aa69038297f32674fb2aca592 192.168.11.228:6382@16382 master - 0 1672219937326 2 connected 5461-10922
 ```
 #得出结论 (主->从) 6381 -> 6385  |  6382 -> 6386  |  6383 -> 6384
+#得出结论 (槽位区间) 6381 -> 0-5460  |  6382 -> 5461-10922  |  6383 -> 10923-16383
+
+#验证槽位影响
+```
+127.0.0.1:6381> set k1 v1
+(error) MOVED 12706 192.168.11.228:6383
+127.0.0.1:6381> set k2 v2
+OK
+127.0.0.1:6381> set k3 v3
+OK
+127.0.0.1:6381> set k4 v4
+(error) MOVED 8455 192.168.11.228:6382
+```
+exit
+
+#正确的连接集群
+redis-cli -p 6381 -c
+```
+127.0.0.1:6381> FLUSHALL
+OK
+127.0.0.1:6381> set k1 v1
+-> Redirected to slot [12706] located at 192.168.11.228:6383
+OK
+192.168.11.228:6383> set k2 v2
+-> Redirected to slot [449] located at 192.168.11.228:6381
+OK
+192.168.11.228:6381> set k3 v3
+OK
+192.168.11.228:6381> set k4 v4
+-> Redirected to slot [8455] located at 192.168.11.228:6382
+OK
+192.168.11.228:6382> 
+```
+exit
+
+#查看集群信息
+redis-cli --cluster check 192.168.111.147:6381
+```
+192.168.11.228:6381 (8455f45a...) -> 2 keys | 5461 slots | 1 slaves.
+192.168.11.228:6383 (ae03cd1b...) -> 1 keys | 5461 slots | 1 slaves.
+192.168.11.228:6382 (84484ee0...) -> 1 keys | 5462 slots | 1 slaves.
+[OK] 4 keys in 3 masters.
+0.00 keys per slot on average.
+>>> Performing Cluster Check (using node 192.168.11.228:6381)
+M: 8455f45a19d115bc4f289f5bfbfd4d6be365dd4c 192.168.11.228:6381
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+S: 60ef182ed3d1b898dae16eb2138fc7b2c02ecdab 192.168.11.228:6386
+   slots: (0 slots) slave
+   replicates 84484ee038e3584aa69038297f32674fb2aca592
+M: ae03cd1b4d9230fb699efc0050f3d493af73286b 192.168.11.228:6383
+   slots:[10923-16383] (5461 slots) master
+   1 additional replica(s)
+S: c22abc631a3844580897fa669979f8c4dc2c9336 192.168.11.228:6384
+   slots: (0 slots) slave
+   replicates ae03cd1b4d9230fb699efc0050f3d493af73286b
+S: 53872ddfe6b28f851dcfdf3536d511895603ad62 192.168.11.228:6385
+   slots: (0 slots) slave
+   replicates 8455f45a19d115bc4f289f5bfbfd4d6be365dd4c
+M: 84484ee038e3584aa69038297f32674fb2aca592 192.168.11.228:6382
+   slots:[5461-10922] (5462 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+```
