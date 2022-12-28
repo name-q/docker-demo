@@ -1,0 +1,29 @@
+docker run -d -p 3307:3306 --privileged=true -v /root/qy/mysql/log:/var/log/mysql -v /root/qy/mysql/data:/var/lib/mysql -v /root/qy/mysql/conf:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=000000  --name mysql mysql:5.7
+
+##解决插入中文乱码
+cd /root/qy/mysql/conf
+vim my.cnf
+
+# +
+[client]
+default_character_set=utf8
+[mysqld]
+collation_server = utf8_general_ci
+character_set_server = utf8
+# +
+
+##重启并验证
+docker restart mysql
+docker exec -it mysql bash
+mysql -uroot -p
+000000
+SHOW VARIABLES LIKE 'character%';
+#utf8 OK!
+
+##更多验证-外部连接验证-续上
+create database db01;
+create table t1(id int,name varchar(20));
+insert into t1 values(1,'z3');
+#使用外部工具
+INSERT INTO `db01`.`t1` (`id`, `name`) VALUES (2, '李四')
+#执行成功
