@@ -16,12 +16,8 @@ RUN cd /etc/yum.repos.d/ && \
     sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
 
 #安装vim编辑器
-RUN yum -y install vim
-#安装ifconfig命令查看网络IP
-RUN yum -y install net-tools
-#安装java8及lib库
-RUN yum -y install glibc.i686
-RUN mkdir /usr/local/java
+RUN yum -y install vim net-tools glibc.i686
+RUN mkdir -p /usr/local/java
 #ADD 是相对路径jar,把jdk-8u171-linux-x64.tar.gz添加到容器中,安装包必须要和Dockerfile文件在同一位置
 ADD jdk-8u351-linux-x64.tar.gz /usr/local/java/
 #配置java环境变量
