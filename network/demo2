@@ -1,0 +1,77 @@
+#新建两个容器
+docker run -d -p 8081:8080 --name tomcat81 billygoo/tomcat8-jdk8
+docker run -d -p 8082:8080 --name tomcat82 billygoo/tomcat8-jdk8
+
+#查看tomcat81网络
+docker exec -it tomcat81 bash
+root@e3e510db45c5:/usr/local/tomcat# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+116: eth0@if117: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:11:00:05 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.5/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+root@e3e510db45c5:/usr/local/tomcat# exit
+exit
+
+#查看tomcat82网络
+docker exec -it tomcat82 bash
+root@ba346943df8d:/usr/local/tomcat# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+118: eth0@if119: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:11:00:06 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.6/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+root@ba346943df8d:/usr/local/tomcat# exit
+exit
+
+#查看物理机网络
+ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: p8p1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 50:9a:4c:0a:de:f0 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.11.228/22 brd 192.168.11.255 scope global noprefixroute p8p1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::8740:5e60:fd47:ca78/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:a6:6d:7f:a3 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:a6ff:fe6d:7fa3/64 scope link 
+       valid_lft forever preferred_lft forever
+49: veth01552a0@if48: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 1e:11:38:85:e9:ba brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::1c11:38ff:fe85:e9ba/64 scope link 
+       valid_lft forever preferred_lft forever
+71: veth148953c@if70: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether ee:f6:e9:fd:67:45 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet6 fe80::ecf6:e9ff:fefd:6745/64 scope link 
+       valid_lft forever preferred_lft forever
+77: vethb658b3d@if76: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 6a:f5:9f:89:7f:01 brd ff:ff:ff:ff:ff:ff link-netnsid 2
+    inet6 fe80::68f5:9fff:fe89:7f01/64 scope link 
+       valid_lft forever preferred_lft forever
+117: veth6ebac79@if116: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 8a:9c:5c:99:29:6a brd ff:ff:ff:ff:ff:ff link-netnsid 3
+    inet6 fe80::889c:5cff:fe99:296a/64 scope link 
+       valid_lft forever preferred_lft forever
+119: veth2389f48@if118: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether b6:e5:39:80:68:cc brd ff:ff:ff:ff:ff:ff link-netnsid 4
+    inet6 fe80::b4e5:39ff:fe80:68cc/64 scope link 
+       valid_lft forever preferred_lft forever
+
+#可见tomcat81网络116 （116: eth0@if117）对应主机网络配置117: veth6ebac79@if116:
+#可见tomcat82网络118 （118: eth0@if119）对应主机网络配置119: veth2389f48@if118:
+
+#故 网桥模式 容器 通过虚拟eth0映射到veth联通网桥docker0 网桥再与物理机eth0通讯

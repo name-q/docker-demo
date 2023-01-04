@@ -1,0 +1,79 @@
+#新建两个容器
+
+docker run -it --name u1 ubuntu bash
+docker run -it --name u2 ubuntu bash
+docker inspect u1| tail -n 20
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "1ec7bbec9cc8071cc651783ea049e90e54aa7b39211157a70fdf68a0b127c27a",
+                    "EndpointID": "370c2c4f803359a70c4a8fda96c163e274d43293d3ee218f5cc3c2f803cc3469",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.5",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:05",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+docker inspect u2| tail -n 20
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "1ec7bbec9cc8071cc651783ea049e90e54aa7b39211157a70fdf68a0b127c27a",
+                    "EndpointID": "d4191ba913b4a83d65642bc79cb3ed4f20911fad41f2ac05b4b009b645ec237b",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.6",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:06",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+#由上可知网络模式为bridge（桥接）
+#u1虚拟ip为172.17.0.5
+#u2虚拟ip为172.17.0.6
+#此时使u2宕机并新建u3
+  
+docker rm -f u2
+docker run -it --name u3 ubuntu bash
+docker inspect u3| tail -n 20
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "1ec7bbec9cc8071cc651783ea049e90e54aa7b39211157a70fdf68a0b127c27a",
+                    "EndpointID": "7a283787a21bd947dd026cf946467c7438dc24590b168b1bad3e7c23df1310ab",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.6",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:06",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+#u3的虚拟ip沿用宕机u2的虚拟ip
+#? ip地址不稳定无法应用于ip直连场景
+
